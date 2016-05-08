@@ -1,0 +1,720 @@
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+
+Design by Free CSS Templates
+http://www.freecsstemplates.org
+Released for free under a Creative Commons Attribution 2.5 License
+
+Title      : Newsprint
+Version    : 1.0
+Released   : 20070824
+Description: A two-column, fixed-width design for blogs and small websites.
+
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<script type ="text/javascript" src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>  
+<script type="text/javascript" src="d3.js"></script>
+<script type = "text/text" src="https://github.com/typicaljoe/taffydb/raw/master/taffy.js"></script> 
+<script type="text/javascript" src="taffy.js"></script>
+<script type="text/javascript" src="store_printData.js"></script>
+<script type="text/javascript" src="saveSvgAsPng.js"></script>    
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="default.css" rel="stylesheet" type="text/css" media="screen" />
+<link rel="stylesheet" href="d3-master/lib/colorbrewer/colorbrewer.css" type="text/css"/>
+<style type="text/css">
+
+path { 
+  stroke: steelblue;
+  stroke-width: 2;
+  fill: none;
+}
+ 
+.axis path,
+.axis line {
+	fill: none;
+	stroke: grey;
+	stroke-width: 1;
+	shape-rendering: crispEdges;
+}
+
+</style>
+<title>Climate Literacy Labs</title>
+</head>
+ 
+<body>
+    
+<!-- start header -->
+<div id="header">
+	<h1>Climate Literacy Labs</h1>
+	<p>Georgia State University</p>
+</div>
+<!-- end header -->
+<!-- star menu -->
+<div id="menu">
+	<ul>
+		<li><a href="http://localhost:8080/Weather_Balloon_Website/">Home</a></li>
+		<li><a href="http://localhost:8080/Weather_Balloon_Website/Weather.html">Weather Balloon</a></li>
+                <li><a href="http://localhost:8080/Weather_Balloon_Website/carbonDioxide.html">Carbon Dioxide Readings</a></li>
+		<li><a href="http://localhost:8080/Weather_Balloon_Website/media.html">Media</a></li>
+		<li><a href="http://localhost:8080/Weather_Balloon_Website/about.html">About</a></li>
+		<li><a href="http://localhost:8080/Weather_Balloon_Website/contact.html">Contact</a></li>
+	</ul>
+</div>
+<!-- end menu -->
+<!-- start page -->
+<div id="page">
+	<!-- start content -->
+	<div id="content">
+            <div class="title">
+                <h2>Instructor Site</h2>
+            </div>
+		<div class="post">
+			<div class="title">
+				<h3>Weather Balloon Data: </h3>
+			</div>
+			<div class="entry">
+                            <div id="block"> 
+                            </div>
+                            <br/><br/>
+			</div>
+		</div>
+	</div>
+	<!-- end content -->
+	<!-- start sidebar -->
+	<div id="sidebar">
+		<ul>
+			<li id="logins">
+				<h2>Logins</h2>
+				<ul>
+					<li><a href="http://localhost:8080/Weather_Balloon_Website/instructor.html">Instructor Login</a></li>
+					<li><a href="http://localhost:8080/Weather_Balloon_Website/admin.html">Administrator Login</a></li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+	<!-- end sidebar -->
+	<div id="extra" style="clear: both;">&nbsp;</div>
+</div>
+<!-- end page -->
+
+<script type="text/javascript">
+    //opens the database
+ var database = TAFFY();
+ //opens the storedGraphData table
+ database.store("storedGraphData");
+ //Global variables
+ var d3;
+ var output = document.getElementById('block');
+ var i=0;
+ var j=0;
+ var k=0;
+ var nameList = [];
+ nameList = database(name).select("name");
+
+//displays all data entries once the page is loaded
+ window.onload=function(){
+     print();
+ };
+
+ //shows all the graphs assoicated the that data entry once the "View Data" button is pressed
+ function viewClick(divID,buttonID){
+    document.getElementById(divID).style.display="inline-block";
+    document.getElementById(buttonID).style.display="none";      
+ }
+ 
+ //saves a .gif file for the associated graphical image to the users computer
+ function saveClick(svgID,name){
+     //uses the saveSvgAsPng javascript file to perform the saving function
+    saveSvgAsPng(document.getElementById(svgID), name+".gif", {backgroundColor: "white"});
+ }
+
+//This method asks for the users confirmation before deleting a data entry
+function deleteClick(id){
+    var confirmDelete = confirm("Are you sure you want to delete this data?");
+    //if yes, then remove the entry from the database
+    if (confirmDelete === true) {
+         alert("File deleted, please refresh the page.");
+         database({___id:id}).remove();
+    }
+    //if no, alert the user the deletion has been canceled
+   else {
+        alert("Canceled");
+    }
+}
+ 
+ //This method creates the temperature vs time graph for each data entry
+function TempGraph(file,id){
+        
+        //creates a display for each data entry in the database
+        if(!document.getElementById('buttonCount'+i))
+        {
+            //creates an html div element for each data entry, so the data can be displayed on the webpage
+            var divElement = document.createElement("div"); 
+            divElement.setAttribute("id","divCount"+i);
+            divElement.setAttribute("class","inner");
+            divElement.setAttribute("style","display: none");
+            var divID = "divCount"+i;
+            
+            //creates a "View Data" button for each data entry so the user can decide which entry to further explore
+            var elementButton = document.createElement("input");
+            var buttonid = "buttonCount"+i;
+            elementButton.setAttribute("id",buttonid);
+            elementButton.setAttribute("class","button");
+            elementButton.setAttribute("value","View Data");
+            elementButton.setAttribute("style","width: 73px;");
+            elementButton.setAttribute("onclick",'viewClick("'+divID+'","'+buttonid+'")');
+   
+            //creates a div html element that displays the name of the data for each data entry
+            var dataName = document.createElement("h4");
+            dataName.setAttribute("id","h3Count"+i);
+            dataName.setAttribute("class","inner");
+            var fileName = nameList[i];
+            dataName.innerHTML=fileName+":";
+            
+            //creates a .csv file download link for each data entry
+            var dataLink = document.createElement("a");
+            dataLink.href =  file;
+            dataLink.download = fileName+".csv";
+            dataLink.innerHTML = "Download Data";
+        
+            //spaces each data entry apart
+            var dataBreak = document.createElement("br");
+            var dataBreak1 = document.createElement("br");
+            var dataBreak2 = document.createElement("br");
+            var dataBreak3 = document.createElement("br");
+
+            //creates the delete button for each data entry
+            var deleteButton = document.createElement("input");
+            var deleteid = "deleteCount"+i;
+            deleteButton.setAttribute("id",deleteid);
+            deleteButton.setAttribute("class","deletebutton");
+            deleteButton.setAttribute("style","float: right");
+            deleteButton.setAttribute("style","padding-right: 8px");
+            deleteButton.setAttribute("value","Delete");
+            deleteButton.setAttribute("style","width: 73px;");
+            deleteButton.setAttribute("onclick",'deleteClick("'+id+'")');
+
+            //appends all newly created html elements for displaying the data to the webpage
+            output.appendChild(dataName);
+            output.appendChild(deleteButton);
+            output.appendChild(dataLink);
+            output.appendChild(dataBreak);
+            output.appendChild(elementButton);
+            output.appendChild(deleteButton);
+            output.appendChild(divElement);
+            output.appendChild(dataBreak1);
+            output.appendChild(dataBreak2);
+            output.appendChild(dataBreak3);
+        }
+        i++;
+
+// Set the dimensions of the canvas / graph
+var	margin = {top: 30, right: 20, bottom: 30, left: 50},
+	width = 600 - margin.left - margin.right,
+	height = 270 - margin.top - margin.bottom;
+ 
+// Set the ranges
+var	x = d3.scale.linear().range([0, width]);
+var	y = d3.scale.linear().range([height, 0]);
+ 
+// Define the axes
+var	xAxis = d3.svg.axis().scale(x)
+	.orient("bottom");
+ 
+var	yAxis = d3.svg.axis().scale(y)
+	.orient("left");
+ 
+// Define the line
+var	valueline = d3.svg.line()
+        .defined(function(d) { return d.Time!==0; })
+        .defined(function(d) { return d.Temperature!==0; })
+	.x(function(d) { return x(d.Time); })
+	.y(function(d) { return y(d.Temperature); });
+    
+// Adds the svg canvas
+var svgID = "svgCount"+k;
+k++;
+
+var	svg = d3.select("#"+divID)
+	.append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+                .attr("id",svgID)
+
+	.append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+ 
+// Get the data
+d3.csv(file, function(error, data) {
+	data.forEach(function(d) {
+      
+		d.Time = +d.Time;
+		d.Temperature = +d.Temperature;
+           
+	});
+
+//Checks to see if the supplied data entry is good or bad data
+//Meaning, is the data from the weather balloon
+ var checkValue = check(data);
+ function check(arr) {
+     var val = false;
+     var count = 0;
+     //checks to see if the weather related variables are present
+  for(var i in arr){
+      if(isNaN(arr[i].Time) || isNaN(arr[i].Temperature)|| isNaN(arr[i].Pressure)|| isNaN(arr[i].Humidity)|| isNaN(arr[i].Altitude)){
+          count++;
+      }
+  }
+  //if none of the correvt variables are present, the method will return true. Meaning the data is bad
+  if(count === arr.length){
+      val =true;  
+  }
+  return val;
+}
+
+	// Scale the range of the data
+	x.domain([d3.min(data, function(d) { return d.Time; })-1,d3.max(data, function(d) { return d.Time; })+1]);
+	y.domain([d3.min(data, function(d) { return d.Temperature; })-1,d3.max(data, function(d) { return d.Temperature; })+1]);
+ 
+	// Add the valueline path.
+	svg.append("path")	
+		.attr("class", "line")
+		.attr("d", valueline(data));
+        
+          // Add the scatterplot
+    svg.selectAll("dot")
+        .data(data.filter(function(d) { return d.Time !== 0; }).filter(function(d) { return d.Temperature !== 0; }))
+        .enter().append("circle")
+        .attr("r", 0.5)
+        .attr("cx", function(d) { return x(d.Time); })
+        .attr("cy", function(d) { return y(d.Temperature); });
+
+	// Add the X Axis
+	svg.append("g")		
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + height + ")")        
+		.call(xAxis);
+ 
+	// Add the Y Axis
+	svg.append("g")		
+		.attr("class", "y axis")
+		.call(yAxis);
+        
+   //adds the y axis label
+   svg.append("text")
+    .attr("class", "y label")
+    .attr("text-anchor", "end")
+    .attr("y", 6)
+    .attr("dy", ".75em")
+    .attr("transform", "rotate(-90)")
+    .text("Temperature (F)");
+    
+    //adds the x axis label
+   svg.append("text")
+    .attr("class", "x label")
+    .attr("text-anchor", "end")
+    .attr("x", width)
+    .attr("y", height - 6)
+    .text("Time (s)");
+
+//adds the graphs title
+   svg.append("text")
+    .attr("x", (width / 2))             
+    .attr("y", 0 - (margin.top / 2))
+    .attr("text-anchor", "middle")  
+    .style("font-size", "16px") 
+    .style("text-decoration", "underline")  
+    .text("Temperature vs Time Graph");
+
+ //alerts the user id the data is bad and removes that entry from the database
+    if(checkValue === true){
+        alert("Bad File!");
+        database({___id:id}).remove();      
+    }
+});
+
+//creates the "Save Image" button for this particular graph
+        if(!document.getElementById('saveCount'+j))
+        {
+            var elementSave = document.createElement("input");
+            var saveid = "saveCount"+j;
+            elementSave.setAttribute("id",saveid);
+            elementSave.setAttribute("class","button");
+            elementSave.setAttribute("value","Save Image");
+            elementSave.setAttribute("style","width: 90px;");
+            elementSave.setAttribute("onclick",'saveClick("'+svgID+'","'+fileName+': Temperature vs Time")');
+            divElement.appendChild(elementSave);
+        }
+        j++;
+
+//calls for the next graph to be made, the pressure vs time graph
+PressureGraph(file,divID,divElement,fileName);
+
+ }
+ 
+ //creates the pressure vs time graph for each data entry
+function PressureGraph(file,divID,divElement,fileName){
+
+// Set the dimensions of the canvas / graph
+var	margin = {top: 30, right: 20, bottom: 30, left: 50},
+	width = 600 - margin.left - margin.right,
+	height = 270 - margin.top - margin.bottom;
+ 
+// Set the ranges
+var	x = d3.scale.linear().range([0, width]);
+var	y = d3.scale.linear().range([height, 0]);
+ 
+// Define the axes
+var	xAxis = d3.svg.axis().scale(x)
+	.orient("bottom");
+ 
+var	yAxis = d3.svg.axis().scale(y)
+	.orient("left");
+ 
+// Define the line
+var	valueline = d3.svg.line()
+        .defined(function(d) { return d.Time!==0; })
+        .defined(function(d) { return d.Pressure!==0; })
+	.x(function(d) { return x(d.Time); })
+	.y(function(d) { return y(d.Pressure); });
+    
+// Adds the svg canvas
+var svgID = "svgCount"+k;
+k++;
+
+var	svg = d3.select("#"+divID)
+	.append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+                .attr("id",svgID)
+	.append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+ 
+// Get the data
+d3.csv(file, function(error, data) {
+	data.forEach(function(d) {
+       
+		d.Time = +d.Time;
+		d.Pressure = +d.Pressure;
+           
+	});
+
+	// Scale the range of the data
+	x.domain([d3.min(data, function(d) { return d.Time; })-1,d3.max(data, function(d) { return d.Time; })+1]);
+	y.domain([d3.min(data, function(d) { return d.Pressure; })-1,d3.max(data, function(d) { return d.Pressure; })+1]);
+ 
+	// Add the valueline path.
+	svg.append("path")	
+		.attr("class", "line")
+		.attr("d", valueline(data));
+        
+          // Add the scatterplot
+    svg.selectAll("dot")
+        .data(data.filter(function(d) { return d.Time !== 0; }).filter(function(d) { return d.Pressure !== 0; }))
+        .enter().append("circle")
+        .attr("r", 0.5)
+        .attr("cx", function(d) { return x(d.Time); })
+        .attr("cy", function(d) { return y(d.Pressure); });
+
+	// Add the X Axis
+	svg.append("g")		
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + height + ")")      
+		.call(xAxis);
+ 
+	// Add the Y Axis
+	svg.append("g")		
+		.attr("class", "y axis")         
+		.call(yAxis);
+       
+   //adds the y axis label
+   svg.append("text")
+    .attr("class", "y label")
+    .attr("text-anchor", "end")
+    .attr("y", 6)
+    .attr("dy", ".75em")
+    .attr("transform", "rotate(-90)")
+    .text("Pressure (Pa)");
+    
+    //adds the x axis label
+   svg.append("text")
+    .attr("class", "x label")
+    .attr("text-anchor", "end")
+    .attr("x", width)
+    .attr("y", height - 6)
+    .text("Time (s)");
+
+//adds the graphs title
+   svg.append("text")
+    .attr("x", (width / 2))             
+    .attr("y", 0 - (margin.top / 2))
+    .attr("text-anchor", "middle")  
+    .style("font-size", "16px") 
+    .style("text-decoration", "underline")  
+    .text("Pressure vs Time Graph");
+
+});
+
+//creates the "Save Image" button for this particular graph
+ if(!document.getElementById('saveCount'+j))
+        { 
+            var elementSave = document.createElement("input");
+            var saveid = "saveCount"+j;
+            elementSave.setAttribute("id",saveid);
+            elementSave.setAttribute("class","button");
+            elementSave.setAttribute("value","Save Image");
+            elementSave.setAttribute("style","width: 90px;");
+            elementSave.setAttribute("onclick",'saveClick("'+svgID+'","'+fileName+': Pressure vs Time")');
+            divElement.appendChild(elementSave);
+        }
+        j++;
+
+//calls for the humidity vs time graph to be made
+HumidityGraph(file,divID,divElement,fileName);
+
+ }
+ 
+ //creates the humidity vs time graph for each data entry
+function HumidityGraph(file,divid,divElement,fileName){
+
+// Set the dimensions of the canvas / graph
+var	margin = {top: 30, right: 20, bottom: 30, left: 50},
+	width = 600 - margin.left - margin.right,
+	height = 270 - margin.top - margin.bottom;
+ 
+// Set the ranges
+var	x = d3.scale.linear().range([0, width]);
+var	y = d3.scale.linear().range([height, 0]);
+ 
+// Define the axes
+var	xAxis = d3.svg.axis().scale(x)
+	.orient("bottom");
+ 
+var	yAxis = d3.svg.axis().scale(y)
+	.orient("left");
+ 
+// Define the line
+var	valueline = d3.svg.line()
+        .defined(function(d) { return d.Time!==0; })
+        .defined(function(d) { return d.Humidity!==0; })
+	.x(function(d) { return x(d.Time); })
+	.y(function(d) { return y(d.Humidity); });
+    
+// Adds the svg canvas
+var svgID = "svgCount"+k;
+k++;
+
+var	svg = d3.select("#"+divid)
+	.append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+                .attr("id",svgID)
+	.append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+ 
+// Get the data
+d3.csv(file, function(error, data) {
+	data.forEach(function(d) {
+       
+		d.Time = +d.Time;
+		d.Humidity = +d.Humidity;
+           
+	});
+
+	// Scale the range of the data
+	x.domain([d3.min(data, function(d) { return d.Time; })-1,d3.max(data, function(d) { return d.Time; })+1]);
+	y.domain([d3.min(data, function(d) { return d.Humidity; })-1,d3.max(data, function(d) { return d.Humidity; })+1]);
+ 
+	// Add the valueline path.
+	svg.append("path")	
+		.attr("class", "line")
+		.attr("d", valueline(data));
+        
+          // Add the scatterplot
+    svg.selectAll("dot")
+        .data(data.filter(function(d) { return d.Time !== 0; }).filter(function(d) { return d.Humidity !== 0; }))
+        .enter().append("circle")
+        .attr("r", 0.5)
+        .attr("cx", function(d) { return x(d.Time); })
+        .attr("cy", function(d) { return y(d.Humidity); });
+
+	// Add the X Axis
+	svg.append("g")		
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + height + ")")
+		.call(xAxis);      
+ 
+	// Add the Y Axis
+	svg.append("g")		
+		.attr("class", "y axis")
+		.call(yAxis);
+   
+        //adds the y axis label
+   svg.append("text")
+    .attr("class", "y label")
+    .attr("text-anchor", "end")
+    .attr("y", 6)
+    .attr("dy", ".75em")
+    .attr("transform", "rotate(-90)")
+    .text("Humidity (%)");
+    
+    //adds the x axis label
+   svg.append("text")
+    .attr("class", "x label")
+    .attr("text-anchor", "end")
+    .attr("x", width)
+    .attr("y", height - 6)
+    .text("Time (s)");
+
+//adds the graphs title
+   svg.append("text")
+    .attr("x", (width / 2))             
+    .attr("y", 0 - (margin.top / 2))
+    .attr("text-anchor", "middle")  
+    .style("font-size", "16px") 
+    .style("text-decoration", "underline")  
+    .text("Humidity vs Time Graph");
+});
+
+//creates the "Save Image" button for this particular graph
+ if(!document.getElementById('saveCount'+j))
+        {  
+            var elementSave = document.createElement("input");
+            var saveid = "saveCount"+j;
+            elementSave.setAttribute("id",saveid);
+            elementSave.setAttribute("class","button");
+            elementSave.setAttribute("value","Save Image");
+            elementSave.setAttribute("style","width: 90px;");
+            elementSave.setAttribute("onclick",'saveClick("'+svgID+'","'+fileName+': Humidity vs Time")');
+            divElement.appendChild(elementSave);
+        }
+        j++;
+
+//calls for the next graph to be displayed, the altitude vs time graph
+AltitudeGraph(file,divid,divElement,fileName);
+
+ }
+ 
+ //creates the altitude vs time graph for each data entry
+ function AltitudeGraph(file,divid,divElement,fileName){
+
+// Set the dimensions of the canvas / graph
+var	margin = {top: 30, right: 20, bottom: 30, left: 50},
+	width = 600 - margin.left - margin.right,
+	height = 270 - margin.top - margin.bottom;
+ 
+// Set the ranges
+var	x = d3.scale.linear().range([0, width]);
+var	y = d3.scale.linear().range([height, 0]);
+ 
+// Define the axes
+var	xAxis = d3.svg.axis().scale(x)
+	.orient("bottom");
+ 
+var	yAxis = d3.svg.axis().scale(y)
+	.orient("left");
+ 
+// Define the line
+var	valueline = d3.svg.line()
+        .defined(function(d) { return d.Time!==0; })
+        .defined(function(d) { return d.Altitude !==0; })
+	.x(function(d) { return x(d.Time); })
+	.y(function(d) { return y(d.Altitude); });
+    
+// Adds the svg canvas
+var svgID = "svgCount"+k;
+k++;
+
+var	svg = d3.select("#"+divid)
+	.append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+                .attr("id",svgID)
+	.append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+ 
+// Get the data
+d3.csv(file, function(error, data) {
+	data.forEach(function(d) {
+       
+		d.Time = +d.Time;
+		d.Altitude = +d.Altitude;
+           
+	});
+
+	// Scale the range of the data
+	x.domain([d3.min(data, function(d) { return d.Time; })-1,d3.max(data, function(d) { return d.Time; })+1]);
+	y.domain([d3.min(data, function(d) { return d.Altitude; })-1,d3.max(data, function(d) { return d.Altitude; })+1]);
+ 
+	// Add the valueline path.
+	svg.append("path")	
+		.attr("class", "line")
+		.attr("d", valueline(data));
+        
+          // Add the scatterplot
+    svg.selectAll("dot")
+        .data(data.filter(function(d) { return d.Time !== 0; }).filter(function(d) { return d.Altitude !== 0; }))
+        .enter().append("circle")
+        .attr("r", 0.5)
+        .attr("cx", function(d) { return x(d.Time); })
+        .attr("cy", function(d) { return y(d.Altitude); });
+
+	// Add the X Axis
+	svg.append("g")		
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + height + ")")    
+		.call(xAxis);      
+ 
+	// Add the Y Axis
+	svg.append("g")		
+		.attr("class", "y axis")   
+		.call(yAxis);
+   
+   //adds the y axis label
+   svg.append("text")
+    .attr("class", "y label")
+    .attr("text-anchor", "end")
+    .attr("y", 6)
+    .attr("dy", ".75em")
+    .attr("transform", "rotate(-90)")
+    .text("Altitude (m)");
+    
+    //adds the x axis label
+   svg.append("text")
+    .attr("class", "x label")
+    .attr("text-anchor", "end")
+    .attr("x", width)
+    .attr("y", height - 6)
+    .text("Time (s)");
+
+//adds the graphs title
+   svg.append("text")
+    .attr("x", (width / 2))             
+    .attr("y", 0 - (margin.top / 2))
+    .attr("text-anchor", "middle")  
+    .style("font-size", "16px") 
+    .style("text-decoration", "underline")  
+    .text("Altitude vs Time Graph");
+});
+
+//creates the "Save Image" button for this particular graph
+ if(!document.getElementById('saveCount'+j))
+        {
+            var elementSave = document.createElement("input");
+            var saveid = "saveCount"+j;
+            elementSave.setAttribute("id",saveid);
+            elementSave.setAttribute("class","button");
+            elementSave.setAttribute("value","Save Image");
+            elementSave.setAttribute("style","width: 90px;");
+            elementSave.setAttribute("onclick",'saveClick("'+svgID+'","'+fileName+': Altitude vs Time")');
+            divElement.appendChild(elementSave);
+        }
+        j++;
+        
+ }
+</script> 
+</body>
+</html>

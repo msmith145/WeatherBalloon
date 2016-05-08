@@ -1,0 +1,233 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+
+Design by Free CSS Templates
+http://www.freecsstemplates.org
+Released for free under a Creative Commons Attribution 2.5 License
+
+Title      : Newsprint
+Version    : 1.0
+Released   : 20070824
+Description: A two-column, fixed-width design for blogs and small websites.
+
+-->
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<script type = "text/text" src="https://github.com/typicaljoe/taffydb/raw/master/taffy.js"></script> 
+<script type="text/javascript" src="taffy.js"></script>
+<script type="text/javascript" src="store_printData.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $("#datepicker").datepicker();
+  });
+</script> 
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="default.css" rel="stylesheet" type="text/css" media="screen" />
+<style type="text/css">
+    
+button {
+    background-color: #009999;
+    border: none;
+    color: white;
+    padding: 5px 8px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    font: 16px Arial;
+}
+.custom-file-input::-webkit-file-upload-button {
+
+    background-color: #009999;
+    border: none;
+    color: white;
+    padding: 5px 8px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    font: 16px Arial;
+}
+
+</style>
+<title>Climate Literacy Labs</title>
+</head>
+    
+<body>   
+<!-- start header -->
+<div id="header">
+	<h1>Climate Literacy Labs</h1>
+	<p>Georgia State University</p>
+</div>
+<!-- end header -->
+<!-- star menu -->
+<div id="menu">
+	<ul>
+		<li><a href="http://localhost:8080/Weather_Balloon_Website/">Home</a></li>
+		<li><a href="http://localhost:8080/Weather_Balloon_Website/Weather.html">Weather Balloon</a></li>
+                <li><a href="http://localhost:8080/Weather_Balloon_Website/carbonDioxide.html">Carbon Dioxide Readings</a></li>
+		<li><a href="http://localhost:8080/Weather_Balloon_Website/media.html">Media</a></li>
+		<li><a href="http://localhost:8080/Weather_Balloon_Website/about.html">About</a></li>
+		<li><a href="http://localhost:8080/Weather_Balloon_Website/contact.html">Contact</a></li>
+	</ul>
+</div>
+<!-- end menu -->
+<!-- start page -->
+
+<div id="page">
+    
+	<!-- start content -->
+	<div id="content">
+		
+            <div class="title">
+		<h2>Instructor Site</h2>
+                <br></br>
+            </div>
+	
+            <div class="entry" id ="uploadData">
+
+                <input class="custom-file-input" type="file" id="files" name="file"  />
+                <br/><br/>
+                  Name your data: &nbsp;<input class ="input" type="text" name="dataName" id ="dataName"/> 
+                 <br/>
+                 <form>
+                  Date data was taken on: &nbsp; <input class ="input" id="datepicker" />
+                 </form> 
+                <span class="readData">
+                    <br/><br/>
+                    <button class="custom-file-input" >Upload File    </button>
+                </span>
+                <br/><br/>
+            </div> 
+			
+	</div>
+        
+        
+	<!-- end content -->
+	<!-- start sidebar -->
+	<div id="sidebar">
+		<ul>
+			<li id="logins">
+				<h2>Logins</h2>
+				<ul>
+					<li><a href="http://localhost:8080/Weather_Balloon_Website/instructor.html">Instructor Login</a></li>
+					<li><a href="http://localhost:8080/Weather_Balloon_Website/admin.html">Administrator Login</a></li>
+				</ul>
+                        </li>
+		</ul>
+	</div>
+	<!-- end sidebar -->
+	<div id="extra" style="clear: both;">&nbsp;</div>
+</div>
+
+<script type="text/javascript">
+    //Global variables
+    var blobDisplay;
+    var array = [];
+    var blobarray = [];
+    var data;
+    var FileReader;
+
+//This method adds the uploaded data to the database. 
+function toExcel(){
+   window.URL = window.URL || window.webkiURL;
+    
+    //removes all spaces from the uploaded data
+   array = array.filter(function(str) {
+             return /\S/.test(str);
+   });
+
+//creates a new line in the uploaded data for every '#'
+   for(var i in array){
+        if(array[i]==="#"){
+            array[i] = "\n";
+        }
+   }
+
+//establishes the uploaded datas filename based on the users input
+   var date = $("#datepicker").datepicker("getDate");
+   var labDate = $.datepicker.formatDate("mm-dd-yy", date);
+   var fileName = document.getElementById("dataName").value + " - Data taken on: " + labDate;
+
+//calls the store method from the store_printData.js file to store the data in the database
+   store(array,fileName);
+  
+  //alerts the user their data has been added to the database and redirects them to the Weather Balloon tab to view the uploaded data
+   alert("Your data has been added!");
+   document.getElementById("dataName").value=""; 
+   location.href = "http://localhost:8080/Weather_Balloon_Website/Weather.html";
+    }
+
+//This method reads the uploaded data and converts it into an array
+  function readBlob(opt_startByte, opt_stopByte) {
+//retrieves the uploaded file, if there is not chosen file the code will alert the user
+    var files = document.getElementById('files').files;
+    if (!files.length) {
+      alert('Please select a file!');
+      return;
+    }
+
+//loads the entire uploaded file
+    var file = files[0];
+    var start = parseInt(opt_startByte) || 0;
+    var stop = parseInt(opt_stopByte) || file.size - 1;
+    var reader = new FileReader();
+
+    // reads the file
+    reader.onloadend = function(evt) {
+      if (evt.target.readyState === FileReader.DONE) { 
+      
+          //converts the blob into a string  
+      display = evt.target.result.split(","); 
+      blobDisplay = display.toString();
+
+    //stores the string in an array
+      for(var i in blobDisplay){
+           if(blobDisplay[i] === false){
+               continue; 
+           }
+           if(blobDisplay[i] === "#"){
+               array.push("\n");
+           }
+           array.push(blobDisplay[i]);
+       }
+       
+       //calls the toExcel method to store the uploaded data
+        toExcel();
+      }
+    };
+  }
+  
+  //adds an event listener on the "Upload File" button
+  //Will read the file once the button is pressed
+  document.querySelector('.readData').addEventListener('click', function(evt) {
+    
+    //checks that the user has added a name for their data before reading the uploaded file
+  if(document.getElementById("dataName").value === ""){
+          alert("Naming the data is a required field");
+      }  
+      //if a file name has been provided, continue with the upload
+  else if (document.getElementById("dataName").value !== ""){
+    array = [];
+    //ensures that the entire file will be read and then begins to read the uploaded file
+    if (evt.target.tagName.toLowerCase() === 'button') {
+      var startByte = evt.target.getAttribute('data-startbyte');
+      var endByte = evt.target.getAttribute('data-endbyte');
+      readBlob(startByte, endByte);
+    }
+  }
+  }, false);
+  
+</script>
+</body>
+</html>
+
+
+
